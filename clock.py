@@ -36,46 +36,64 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
+# format_time_24h(time_tuple)
+# Formats a time tuple into a 24-hour format string (hh:mm:ss)
+# Example: (16, 30, 0) -> "16:30:00"
+def format_time_24h(time_tuple):
+    hours, minutes, seconds = time_tuple
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
+# format_time_12h(time_tuple)
+# Formats a time tuple into a 12-hour format string with AM/PM
+# Example: (16, 30, 0) -> "04:30:00 PM"
+# Conversion rules: 0h=12AM, 1-11h=AM, 12h=12PM, 13-23h=PM (-12h)
+def format_time_12h(time_tuple):
+    hours, minutes, seconds = time_tuple
+
+    # Determine AM or PM and convert hours
+    if hours == 0:
+        display_hours = 12
+        period = "AM"
+    elif hours < 12:
+        display_hours = hours
+        period = "AM"
+    elif hours == 12:
+        display_hours = 12
+        period = "PM"
+    else:
+        display_hours = hours - 12
+        period = "PM"
+
+    return f"{display_hours:02d}:{minutes:02d}:{seconds:02d} {period}"
+
+
 # display_time(time_tuple)
 # Shows the clock on screen with current time, alarm, and status
 # Parameter: time_tuple = (hours, minutes, seconds)
 def display_time(time_tuple):
     clear_screen()
 
-    # Tuple unpacking: (14, 30, 45) becomes hours=14, minutes=30...
-    hours, minutes, seconds = time_tuple
-
     print("\n    GrandMa Jeannine's Clock\n")
 
+    # Format time based on current mode using dedicated functions
     if is_24h_mode:
-        # :02d = pad with zeros, 2 digits minimum. So 5 becomes "05"
-        print(f"        {hours:02d}:{minutes:02d}:{seconds:02d}")
-        print("        (24h mode)\n")
+        formatted_time = format_time_24h(time_tuple)
+        mode_text = "24h mode"
     else:
-        # 12h conversion rules:
-        # 0h=12AM, 1-11h=AM, 12h=12PM, 13-23h=PM (-12h)
-        if hours == 0:
-            display_hours = 12
-            period = "AM"
-        elif hours < 12:
-            display_hours = hours
-            period = "AM"
-        elif hours == 12:
-            display_hours = 12
-            period = "PM"
-        else:
-            display_hours = hours - 12
-            period = "PM"
+        formatted_time = format_time_12h(time_tuple)
+        mode_text = "12h mode"
 
-        print(f"        {display_hours:02d}:{minutes:02d}:{seconds:02d} {period}")
-        print("        (12h mode)\n")
+    print(f"        {formatted_time}")
+    print(f"        ({mode_text})\n")
 
     if is_paused:
         print("        [PAUSED]\n")
 
     if alarm_time is not None:
-        h, m, s = alarm_time
-        print(f"        Alarm set: {h:02d}:{m:02d}:{s:02d}\n")
+        # Use format function for alarm display too
+        alarm_display = format_time_24h(alarm_time)
+        print(f"        Alarm set: {alarm_display}\n")
 
     # Show hint to access menu
     print("    Press Ctrl+C to open menu")

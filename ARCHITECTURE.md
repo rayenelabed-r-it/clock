@@ -42,7 +42,7 @@ Each function has **one single responsibility**.
                               │
                               ▼ uses
 ╔═══════════════════════════════════════════════════════════════╗
-║                     DOMAIN LAYER                              ║
+║                   CORE/DOMAIN LAYER                           ║
 ║                   (Time Management)                           ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                               ║
@@ -62,7 +62,7 @@ Each function has **one single responsibility**.
                               │
                               ▼ uses
 ╔═══════════════════════════════════════════════════════════════╗
-║                      SOURCE LAYER                             ║
+║                    DATA/SOURCE LAYER                          ║
 ║                    (Time Origin)                              ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                               ║
@@ -135,6 +135,9 @@ Each function has **one single responsibility**.
 
 | Function                      | Input                 | Output                | Responsibility        |
 |-------------------------------|-----------------------|-----------------------|-----------------------|
+| `display_time(tuple)`         | `(16, 30, 0)`         | (none)                | Shows clock on screen |
+| `clear_screen()`              | (none)                | (none)                | Clears terminal       |
+| `get_time_input(prompt)`      | `"Set the time:"`     | `(h, m, s)` or `None` | Prompts user for time |
 | `format_time_24h(tuple)`      | `(16, 30, 0)`         | `"16:30:00"`          | 24h formatting        |
 | `format_time_12h(tuple)`      | `(16, 30, 0)`         | `"04:30:00 PM"`       | 12h formatting        |
 | `set_time(tuple)`             | `(16, 30, 0)`         | `True/False`          | Modify time           |

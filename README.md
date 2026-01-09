@@ -16,7 +16,7 @@
 
 ### Requirements
 - Python 3.x
-- Linux/macOS (for `select` module) or Windows (fallback mode available)
+- Linux/macOS or Windows
 
 ### Run the program
 ```bash
@@ -28,115 +28,32 @@ python clock.py
 ### Main Menu
 When you start the program, you'll see:
 ```
-    GRANDMA JEANNINE'S CLOCK
+    Welcome to GrandMa Jeannine's Clock!
 
-  [1] Interactive Clock with settings
-  [2] Simple Clock without settings (Ctrl+C to stop)
-  [Q] Quit
+    Current time: 14:30:45
+    Alarm: not set
+    Mode: 24h
+    Status: running
+
+    MENU
+[1] Set time         [2] Set alarm       [3] Toggle 12h/24h mode
+[4] Pause/Resume     [5] Start clock     [6] Quit
 ```
 
-### Interactive Commands
-While the clock is running, you can use these commands:
+### Menu Options
 
-| Key | Action |
-|-----|--------|
-| `S` | Set the time |
-| `A` | Set an alarm |
-| `M` | Toggle 12h/24h mode |
-| `P` | Pause/Resume the clock |
-| `C` | Clear the alarm |
-| `Q` | Quit the program |
-
----
-
-## Technical Documentation: The `select` Module
-
-### The Problem: Blocking Input
-
-In a typical clock program, you might write:
-```python
-while True:
-    display_time()
-    time.sleep(1)
-    command = input("Enter command: ")  # PROBLEM: Clock stops here!
-```
-
-The `input()` function is **blocking** — the program stops and waits for the user to press Enter. This means the clock would freeze every second waiting for input.
-
-### The Solution: `select.select()`
-
-The `select` module allows us to check if input is available **without blocking** the program.
-
-```python
-import select
-import sys
-
-# Wait for input OR timeout after 1 second
-ready, _, _ = select.select([sys.stdin], [], [], 1)
-
-if ready:
-    # User typed something — read it
-    command = sys.stdin.readline().strip()
-else:
-    # No input — continue with the clock
-    pass
-```
-
-### How `select.select()` Works
-
-```python
-select.select(read_list, write_list, error_list, timeout)
-```
-
-| Parameter | Description |
-|-----------|-------------|
-| `read_list` | List of file descriptors to monitor for input (we use `[sys.stdin]`) |
-| `write_list` | List of file descriptors to monitor for output (we use `[]`) |
-| `error_list` | List of file descriptors to monitor for errors (we use `[]`) |
-| `timeout` | Maximum time to wait in seconds (we use `1` for 1 second) |
-
-**Returns:** Three lists of file descriptors that are ready. We only care about the first one (readable inputs).
-
-### In Our Code
-
-```python
-# From run_clock() function:
-ready, _, _ = select.select([sys.stdin], [], [], 1)
-
-if ready:
-    # Input is available — read the command
-    command = sys.stdin.readline().strip().upper()
-    # Process command...
-else:
-    # No input after 1 second — update the clock
-    if not is_paused:
-        current_time = increment_time(current_time)
-```
-
-### Platform Compatibility
-
-- **Linux/macOS**: `select` works with `sys.stdin`
-- **Windows**: `select` does NOT work with `sys.stdin` on Windows
-
-Our code includes a fallback for Windows:
-```python
-except (ImportError, OSError):
-    # Fallback for Windows — simple sleep without interactive input
-    time.sleep(1)
-    if not is_paused:
-        current_time = increment_time(current_time)
-```
+| Option            | Action                                                |
+|--------           |--------                                               |
+| `1`               | Set the clock time manually                           |
+| `2`               | Set an alarm                                          |
+| `3`               | Toggle between 12h and 24h display mode               |
+| `4`               | Pause or resume the clock                             |
+| `5`               | Start the clock (press `Ctrl+C` to return to menu)    |
+| `6`               | Quit the program                                      |
 
 ---
 
 ## Architecture
-
-### Design Principles
-
-1. **Separation of Concerns**: Each function has ONE job
-2. **Future-Proof**: Easy to replace time source (e.g., with an API)
-3. **No Classes**: Functions only (appropriate for Bachelor 1st year)
-4. **Well-Commented**: Every function has a docstring explaining its purpose
 
 ### Function Architecture
 
@@ -154,9 +71,9 @@ except (ImportError, OSError):
 │  ┌─────────────────┐  ┌─────────────────┐                   │
 │  │ format_time_24h │  │ format_time_12h │                   │
 │  └─────────────────┘  └─────────────────┘                   │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
-│  │ check_alarm()   │  │ set_alarm()     │  │ clear_alarm()│ │
-│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+│  ┌─────────────────┐  ┌─────────────────┐                   │
+│  │ check_alarm()   │  │ set_alarm()     │                   │
+│  └─────────────────┘  └─────────────────┘                   │
 │  ┌─────────────────┐  ┌─────────────────┐                   │
 │  │ toggle_pause()  │  │ toggle_display_ │                   │
 │  │                 │  │ mode()          │                   │
@@ -184,21 +101,22 @@ except (ImportError, OSError):
 
 ### Function Reference
 
-| Function | Layer | Purpose |
-|----------|-------|---------|
-| `display_time()` | Presentation | Shows clock on screen |
-| `clear_screen()` | Presentation | Clears terminal |
-| `get_time_input()` | Presentation | Prompts user for time |
-| `format_time_24h()` | Service | Formats tuple to `hh:mm:ss` |
-| `format_time_12h()` | Service | Formats tuple to `hh:mm:ss AM/PM` |
-| `check_alarm()` | Service | Compares current time with alarm |
-| `set_alarm()` | Service | Sets alarm time |
-| `clear_alarm()` | Service | Removes alarm |
-| `toggle_pause()` | Service | Pauses/resumes clock |
-| `toggle_display_mode()` | Service | Switches 12h/24h |
-| `set_time()` | Core | Sets current time |
-| `increment_time()` | Core | Adds 1 second to time |
-| `run_clock()` | Main | Main loop |
+| Function                  | Layer                 | Purpose                                                       |
+|----------                 |-------                |---------                                                      |
+| `display_time()`          | Presentation          | Shows clock on screen                                         |
+| `clear_screen()`          | Presentation          | Clears terminal                                               |
+| `get_time_input()`        | Presentation          | Prompts user for time                                         |
+| `format_time_24h()`       | Service               | Formats tuple to `hh:mm:ss`                                   | 
+| `format_time_12h()`       | Service               | Formats tuple to `hh:mm:ss AM/PM`                             |
+| `check_alarm()`           | Service               | Compares current time with alarm (auto-clears after trigger)  |
+| `set_alarm()`             | Service               | Sets alarm time                                               |
+| `toggle_pause()`          | Service               | Pauses/resumes clock                                          |
+| `toggle_display_mode()`   | Service               | Switches 12h/24h                                              |
+| `set_time()`              | Core                  | Sets current time                                             |
+| `increment_time()`        | Core                  | Adds 1 second to time                                         |
+| `show_menu()`             | Presentation          | Displays the menu options                                     |
+| `run_clock()`             | Main                  | Clock display loop                                            |
+| `main()`                  | Main                  | Entry point, menu handling                                    |
 
 ---
 
@@ -208,6 +126,7 @@ except (ImportError, OSError):
 - External API for time synchronization
 - Multiple alarm support
 - Sound notification for alarm
+- Using GitPages and GitAction
 
 ---
 

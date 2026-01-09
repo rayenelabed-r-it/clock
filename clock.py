@@ -28,13 +28,15 @@ is_24h_mode = True
 is_paused = False
 
 
-# DISPLAY FUNCTIONS
+# PRESENTATION FUNCTIONS
 
 # clear_screen()
 # Clears terminal using 'cls' (Windows) or 'clear' (Linux/Mac)
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+
+# SERVICE FUNCTIONS - Formatting
 
 # format_time_24h(time_tuple)
 # Formats a time tuple into a 24-hour format string (hh:mm:ss)
@@ -67,6 +69,8 @@ def format_time_12h(time_tuple):
 
     return f"{display_hours:02d}:{minutes:02d}:{seconds:02d} {period}"
 
+
+# PRESENTATION FUNCTIONS - Display
 
 # display_time(time_tuple)
 # Shows the clock on screen with current time, alarm, and status

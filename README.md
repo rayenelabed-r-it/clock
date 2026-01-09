@@ -213,8 +213,5 @@ except (ImportError, OSError):
 
 ## Author
 
-**Jawkah** — Bachelor 1st Year, La Plateforme
+**Rayene, Jean-Pierre, Claude** — Bachelor 1st Year, Data-AI, La Plateforme
 
-## License
-
-Educational project — Free to use and modify.

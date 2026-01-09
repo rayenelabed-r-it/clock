@@ -36,7 +36,7 @@ Each function has **one single responsibility**.
 ║   ──────────             ─────                 ───────        ║
 ║   format_time_24h()      set_alarm()           toggle_pause() ║
 ║   format_time_12h()      check_alarm()         toggle_display ║
-║                          clear_alarm()         _mode()        ║
+║                                                _mode()        ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
                               │
@@ -81,8 +81,8 @@ Each function has **one single responsibility**.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      run_clock()                            │
-│                     (Main Loop)                             │
+│                        main()                               │
+│                   (Entry Point)                             │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -92,23 +92,41 @@ Each function has **one single responsibility**.
                               │
                               ▼
          ┌────────────────────────────────────┐
-         │          WHILE TRUE LOOP           │
+         │       MAIN MENU LOOP               │
+         │  (show_menu → get choice)          │
          └────────────────────────────────────┘
                               │
-              ┌───────────────┼───────────────┐
-              ▼               ▼               ▼
-      ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-      │display_time()│ │check_alarm() │ │select.select │
-      │              │ │              │ │(wait 1s)     │
-      └──────────────┘ └──────────────┘ └──────┬───────┘
-                                               │
-                              ┌────────────────┴────────────────┐
-                              ▼                                 ▼
-                    ┌─────────────────┐              ┌─────────────────┐
-                    │ Input detected? │              │ No input        │
-                    │ → Process       │              │ → increment_    │
-                    │   command       │              │   time()        │
-                    └─────────────────┘              └─────────────────┘
+         Choice 5: Start clock
+                              │
+                              ▼
+         ┌────────────────────────────────────┐
+         │          run_clock()               │
+         │        WHILE TRUE LOOP             │
+         └────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+      ┌──────────────┐                ┌──────────────┐
+      │display_time()│                │check_alarm() │
+      └──────────────┘                └──────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │ time.sleep(1)   │
+                    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │ if not paused:  │
+                    │ increment_time()│
+                    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │ Ctrl+C pressed? │
+                    │ → Return to     │
+                    │   main menu     │
+                    └─────────────────┘
 ```
 
 ---
@@ -116,46 +134,27 @@ Each function has **one single responsibility**.
 ## Function Reference Table
 
 | Function                      | Input                 | Output                | Responsibility        |
-|----------                     |-------                |--------               |----------------       |
+|-------------------------------|-----------------------|-----------------------|-----------------------|
 | `format_time_24h(tuple)`      | `(16, 30, 0)`         | `"16:30:00"`          | 24h formatting        |
 | `format_time_12h(tuple)`      | `(16, 30, 0)`         | `"04:30:00 PM"`       | 12h formatting        |
 | `set_time(tuple)`             | `(16, 30, 0)`         | `True/False`          | Modify time           |
 | `increment_time(tuple)`       | `(16, 30, 59)`        | `(16, 31, 0)`         | +1 second             |
-| `check_alarm(tuple)`          | current time          | `True/False`          | Check alarm           |
+| `check_alarm()`               | (uses global)         | `True/False`          | Check & clear alarm   |
 | `set_alarm(tuple)`            | `(7, 0, 0)`           | `True/False`          | Set alarm             |
+| `toggle_pause()`              | (none)                | (none)                | Toggle pause state    |
+| `toggle_display_mode()`       | (none)                | (none)                | Toggle 12h/24h        |
+| `show_menu()`                 | (none)                | (none)                | Display menu          |
+| `run_clock()`                 | (none)                | (none)                | Clock display loop    |
+| `main()`                      | (none)                | (none)                | Entry point           |
 
 ---
 
 ## Why This Architecture?
-
-### Benefits for the oral defense:
 
 1. **Explainable**: "This function does X, that one does Y"
 2. **Testable**: You can test `format_time_24h()` in isolation
 3. **Maintainable**: Display bug? → Look at `display_time()` only
 4. **Extensible**: Change the source = modify ONE function
 
-### Example defense Q&A:
-
-> **Jury**: "Why did you separate formatting from display?"
->
 > **You**: "To be able to reuse formatting elsewhere. For example, `check_alarm()` also uses formatting to show the alarm time, without duplicating code."
 
----
-
-## The `select` Library in Brief
-
-**Problem**: `input()` blocks the program — the clock stops.
-
-**Solution**: `select.select()` waits for 1 second. If the user types something, we process it. Otherwise, we continue.
-
-```python
-ready, _, _ = select.select([sys.stdin], [], [], 1)
-#                           ▲           ▲   ▲   ▲
-#                           │           │   │   └─ timeout: 1 second
-#                           │           │   └─ error list (empty)
-#                           │           └─ write list (empty)
-#                           └─ read list (keyboard input)
-```
-
-**Result**: The clock keeps running even if the user does nothing.

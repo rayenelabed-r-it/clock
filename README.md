@@ -105,7 +105,7 @@ When you start the program, you'll see:
 |----------                 |-------                |---------                                                      |
 | `display_time()`          | Presentation          | Shows clock on screen                                         |
 | `clear_screen()`          | Presentation          | Clears terminal                                               |
-| `get_time_input()`        | Presentation          | Prompts user for time                                         |
+| `get_time_input(prompt)`  | Presentation          | Prompts user for time                                         |
 | `format_time_24h()`       | Service               | Formats tuple to `hh:mm:ss`                                   | 
 | `format_time_12h()`       | Service               | Formats tuple to `hh:mm:ss AM/PM`                             |
 | `check_alarm()`           | Service               | Compares current time with alarm (auto-clears after trigger)  |

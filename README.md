@@ -20,7 +20,7 @@
 
 ### Run the program
 ```bash
-python clockClaude.py
+python clock.py
 ```
 
 ## Usage
